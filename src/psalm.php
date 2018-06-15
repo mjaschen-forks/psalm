@@ -9,7 +9,7 @@ use Psalm\IssueBuffer;
 error_reporting(-1);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-ini_set('memory_limit', '4096M');
+ini_set('memory_limit', '2048M');
 
 // get options from command line
 $options = getopt(
@@ -280,15 +280,10 @@ $cache_provider = isset($options['no-cache'])
     : new Psalm\Provider\ParserCacheProvider();
 
 // initialise custom config, if passed
-try {
-    if ($path_to_config) {
-        $config = Config::loadFromXMLFile($path_to_config, $current_dir);
-    } else {
-        $config = Config::getConfigForPath($current_dir, $current_dir, $output_format);
-    }
-} catch (Psalm\Exception\ConfigException $e) {
-    echo $e->getMessage();
-    exit(1);
+if ($path_to_config) {
+    $config = Config::loadFromXMLFile($path_to_config, $current_dir);
+} else {
+    $config = Config::getConfigForPath($current_dir, $current_dir, $output_format);
 }
 
 $config->setComposerClassLoader($first_autoloader);
