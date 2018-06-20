@@ -125,4 +125,9 @@ class FunctionLikeStorage
      * @var bool
      */
     public $has_visitor_issues = false;
+
+    /**
+     * @var array<int, string>
+     */
+    public $throws = [];
 }

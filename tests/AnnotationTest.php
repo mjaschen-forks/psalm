@@ -366,6 +366,221 @@ class AnnotationTest extends TestCase
     }
 
     /**
+     * @expectedException        \Psalm\Exception\CodeException
+     * @expectedExceptionMessage MissingThrowsDocblock
+     *
+     * @return                   void
+     */
+    public function testUndocumentedThrow()
+    {
+        Config::getInstance()->check_for_throw_docblocks = true;
+
+        $this->addFile(
+            'somefile.php',
+            '<?php
+                function foo(int $x, int $y) : int {
+                    if ($y === 0) {
+                        throw new \LogicException("Cannot divide by zero");
+                    }
+
+                    if ($y < 0) {
+                        throw new \InvalidArgumentException("This is also bad");
+                    }
+
+                    return intdiv($x, $y);
+                }'
+        );
+
+        $context = new Context();
+
+        $this->analyzeFile('somefile.php', $context);
+    }
+
+    /**
+     * @return void
+     */
+    public function testDocumentedThrow()
+    {
+        Config::getInstance()->check_for_throw_docblocks = true;
+
+        $this->addFile(
+            '<?php
+                /**
+                 * @throws LogicException
+                 * @throws InvalidArgumentException
+                 */
+                function foo(int $x, int $y) : int {
+                    if ($y === 0) {
+                        throw new \LogicException("Cannot divide by zero");
+                    }
+
+                    if ($y < 0) {
+                        throw new \InvalidArgumentException("This is also bad");
+                    }
+
+                    return intdiv($x, $y);
+                }'
+        );
+
+        $context = new Context();
+
+        $this->analyzeFile('somefile.php', $context);
+    }
+
+    /**
+     * @expectedException        \Psalm\Exception\CodeException
+     * @expectedExceptionMessage MissingThrowsDocblock
+     *
+     * @return                   void
+     */
+    public function testUndocumentedThrowInFunctionCall()
+    {
+        Config::getInstance()->check_for_throw_docblocks = true;
+
+        $this->addFile(
+            '<?php
+                /**
+                 * @throws LogicException
+                 * @throws InvalidArgumentException
+                 */
+                function foo(int $x, int $y) : int {
+                    if ($y === 0) {
+                        throw new \LogicException("Cannot divide by zero");
+                    }
+
+                    if ($y < 0) {
+                        throw new \InvalidArgumentException("This is also bad");
+                    }
+
+                    return intdiv($x, $y);
+                }
+
+                function bar(int $x, int $y) {
+                    foo($x, $y);
+                }'
+        );
+
+        $context = new Context();
+
+        $this->analyzeFile('somefile.php', $context);
+    }
+
+    /**
+     * @return                   void
+     */
+    public function testDocumentedThrowInFunctionCall()
+    {
+        Config::getInstance()->check_for_throw_docblocks = true;
+
+        $this->addFile(
+            '<?php
+                /**
+                 * @throws LogicException
+                 * @throws InvalidArgumentException
+                 */
+                function foo(int $x, int $y) : int {
+                    if ($y === 0) {
+                        throw new \LogicException("Cannot divide by zero");
+                    }
+
+                    if ($y < 0) {
+                        throw new \InvalidArgumentException("This is also bad");
+                    }
+
+                    return intdiv($x, $y);
+                }
+
+                /**
+                 * @throws LogicException
+                 * @throws InvalidArgumentException
+                 */
+                function bar(int $x, int $y) {
+                    foo($x, $y);
+                }'
+        );
+
+        $context = new Context();
+
+        $this->analyzeFile('somefile.php', $context);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCaughtThrowInFunctionCall()
+    {
+        Config::getInstance()->check_for_throw_docblocks = true;
+
+        $this->addFile(
+            '<?php
+                /**
+                 * @throws LogicException
+                 * @throws InvalidArgumentException
+                 */
+                function foo(int $x, int $y) : int {
+                    if ($y === 0) {
+                        throw new \LogicException("Cannot divide by zero");
+                    }
+
+                    if ($y < 0) {
+                        throw new \InvalidArgumentException("This is also bad");
+                    }
+
+                    return intdiv($x, $y);
+                }
+
+                function bar(int $x, int $y) {
+                    try {
+                        foo($x, $y);
+                    } catch (LogicException $e) {
+
+                    } catch (InvalidArgumentException $e) {}
+                }'
+        );
+
+        $context = new Context();
+
+        $this->analyzeFile('somefile.php', $context);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCaughtAllThrowInFunctionCall()
+    {
+        Config::getInstance()->check_for_throw_docblocks = true;
+
+        $this->addFile(
+            '<?php
+                /**
+                 * @throws LogicException
+                 * @throws InvalidArgumentException
+                 */
+                function foo(int $x, int $y) : int {
+                    if ($y === 0) {
+                        throw new \LogicException("Cannot divide by zero");
+                    }
+
+                    if ($y < 0) {
+                        throw new \InvalidArgumentException("This is also bad");
+                    }
+
+                    return intdiv($x, $y);
+                }
+
+                function bar(int $x, int $y) {
+                    try {
+                        foo($x, $y);
+                    } catch (Exception $e) {}
+                }'
+        );
+
+        $context = new Context();
+
+        $this->analyzeFile('somefile.php', $context);
+    }
+
+    /**
      * @return array
      */
     public function providerFileCheckerValidCodeParse()
